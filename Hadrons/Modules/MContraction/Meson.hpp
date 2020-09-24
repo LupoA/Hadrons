@@ -179,6 +179,10 @@ void TMeson<FImpl1, FImpl2>::setup(void)
 template <typename FImpl1, typename FImpl2>
 void TMeson<FImpl1, FImpl2>::execute(void)
 {
+    std::ofstream filePP;
+    std::ofstream fileXX;
+    std::ofstream fileYY;
+    std::ofstream fileZZ;
     LOG(Message) << "Computing meson contractions '" << getName() << "' using"
                  << " quarks '" << par().q1 << "' and '" << par().q2 << "'"
                  << std::endl;
@@ -222,6 +226,9 @@ void TMeson<FImpl1, FImpl2>::execute(void)
         
         envGetTmp(LatticeComplex, c);
         LOG(Message) << "(using sink '" << par().sink << "')" << std::endl;
+        fileXX.open ("XX.txt", std::ios_base::app);
+        fileYY.open ("YY.txt", std::ios_base::app);
+        fileZZ.open ("ZZ.txt", std::ios_base::app);
         for (unsigned int i = 0; i < result.size(); ++i)
         {
             Gamma       gSnk(gammaList[i].first);
@@ -243,11 +250,51 @@ void TMeson<FImpl1, FImpl2>::execute(void)
                 c   = trace(mesonConnected(q1, q2, gSnk, gSrc));
                 buf = sink(c);
             }
+            filePP.open ("PseudoPseudo.txt", std::ios_base::app);
             for (unsigned int t = 0; t < buf.size(); ++t)
             {
                 result[i].corr[t] = TensorRemove(buf[t]);
+                if ( i == 0 ) {
+                
+                                   myfile << result[i].corr[t].real();
+                                   if (t < buf.size() - 1 ) {
+                                       myfile << "//";
+                                   }
+                                   
+                                   //std::cout << "c_pp(" << t << ") = " << result[i].corr[t].real()  << std::endl;
+                               }
+                if ( i == 2 ) {
+                
+                                   fileYY << result[i].corr[t].real();
+                                   if (t < buf.size() - 1 ) {
+                                       fileYY << "//";
+                                   } else {
+                                           fileYY << std::endl;
+                                   }
+                                   //std::cout << " gammasnk " << result[i].gamma_snk << std::endl;
+                                   //std::cout << " gammasrc " << result[i].gamma_src << std::endl;
+                                   //std::cout << "c_yy(" << t << ") = " << result[i].corr[t].real()  << std::endl;
+                               }
+                
+                if ( i == 3 ) {
+                
+                                   fileZZ << result[i].corr[t].real();
+                                   if (t < buf.size() - 1 ) {
+                                       fileZZ << "//";
+                                   } else {
+                                           fileZZ << std::endl;
+                                   }
+                                   //std::cout << " gammasnk " << result[i].gamma_snk << std::endl;
+                                   //std::cout << " gammasrc " << result[i].gamma_src << std::endl;
+                                   //std::cout << "c_zz(" << t << ") = " << result[i].corr[t].real()  << std::endl;
+                               }
             }
+            filePP << std::endl;
         }
+        filePP.close();
+        fileXX.close();
+        fileYY.close();
+        fileZZ.close();
     }
     saveResult(par().output, "meson", result);
 }
