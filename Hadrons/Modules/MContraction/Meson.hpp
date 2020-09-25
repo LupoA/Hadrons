@@ -256,9 +256,9 @@ void TMeson<FImpl1, FImpl2>::execute(void)
                 result[i].corr[t] = TensorRemove(buf[t]);
                 if ( i == 0 ) {
                 
-                                   myfile << result[i].corr[t].real();
+                                   filePP << result[i].corr[t].real();
                                    if (t < buf.size() - 1 ) {
-                                       myfile << "//";
+                                       filePP << "//";
                                    }
                                    
                                    //std::cout << "c_pp(" << t << ") = " << result[i].corr[t].real()  << std::endl;
