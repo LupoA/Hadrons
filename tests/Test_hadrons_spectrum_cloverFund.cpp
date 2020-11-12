@@ -30,8 +30,72 @@
 using namespace Grid;
 using namespace Hadrons;
 
+namespace HadronsInputs
+{
+  class TrajRange : Serializable
+  {
+  public:
+    // -----------------------------------
+    GRID_SERIALIZABLE_CLASS_MEMBERS(TrajRange,
+				    unsigned int, start,
+				    unsigned int, end,
+				    unsigned int, step);
+  };
+  // -----------------------------------
+  class GaugeConfigurations : Serializable
+  {
+  public:
+    GRID_SERIALIZABLE_CLASS_MEMBERS(GaugeConfigurations,
+				    std::string, gname,
+				    std::string, rname);
+  };
+  // -----------------------------------
+  class ValenceFermions : Serializable
+  {
+  public:
+    GRID_SERIALIZABLE_CLASS_MEMBERS(ValenceFermions,
+				    double, valencemass,
+				    double, coeffcsw);
+  };
+  // -----------------------------------
+}
+
+struct HadronsPar
+{
+  HadronsInputs::TrajRange           trajRange;
+  HadronsInputs::GaugeConfigurations      gaugeConfigurations;
+  HadronsInputs::ValenceFermions valenceFermions;
+};
+
 int main(int argc, char *argv[])
 {
+
+  // parse command line
+  std::string parFilename;
+
+  if (argc < 2)
+    {
+      std::cerr << "usage: " << argv[0] << " <parameter file>";
+      std::cerr << std::endl;
+      return EXIT_FAILURE;
+    }
+  parFilename = argv[1];
+
+  // parse parameter file
+  HadronsPar par;
+  XmlReader reader(parFilename);
+
+  read(reader,        "trajRange",        par.trajRange);
+  read(reader,        "gaugeConfigurations",        par.gaugeConfigurations);
+  read(reader,        "valenceFermions",        par.valenceFermions);
+    
+  unsigned int trajStart = par.trajRange.start;
+  unsigned int trajEnd   = par.trajRange.end;
+  unsigned int trajStep  = par.trajRange.step;
+  std::string nameOfGauge = par.gaugeConfigurations.gname;
+  std::string nameOfRun = par.gaugeConfigurations.rname;
+
+
     // initialization //////////////////////////////////////////////////////////
     Grid_init(&argc, &argv);
     HadronsLogError.Active(GridLogError.isActive());
@@ -44,26 +108,38 @@ int main(int argc, char *argv[])
     // run setup ///////////////////////////////////////////////////////////////
     Application              application;
     std::vector<std::string> flavour = {"l"};
-    std::vector<double>      mass    = {-0.55};
-    double                   csw     = 1.0;
+    //  std::vector<double>      mass    = {-0.55};
+    // double                   csw     = 1.0;
     //double                   csw     = 0.0;
+    std::vector<double>       mass = {par.valenceFermions.valencemass};
+    double                   csw = par.valenceFermions.coeffcsw;
     
-    std::cout << "v mass" << mass << std::endl;
     
     // global parameters
     Application::GlobalPar globalPar;
-    globalPar.trajCounter.start = 40;
-    globalPar.trajCounter.end   = 149;
-    globalPar.trajCounter.step  = 1;
+    //    globalPar.trajCounter.start = 40;
+    //    globalPar.trajCounter.end   = 149;
+    //    globalPar.trajCounter.step  = 1;
+    globalPar.trajCounter.start = trajStart;
+    globalPar.trajCounter.end   = trajEnd;
+    globalPar.trajCounter.step  = trajStep;
 
-    globalPar.runId             = "b11.0_am-0.45_am-0.45";
+
+    // globalPar.runId             = "b11.0_am-0.45_am-0.45";
+    globalPar.runId             = nameOfRun;
     application.setPar(globalPar);
     
     //gauge field
     MIO::LoadNersc::Par gaugePar;
-    gaugePar.file = "ckpoint_b11.0_am-0.45_am-0.45_lat";
+    //    gaugePar.file = "ckpoint_b11.0_am-0.45_am-0.45_lat";
+    gaugePar.file = nameOfGauge;
     application.createModule<MIO::LoadNersc>("gauge", gaugePar);
- 
+    // application.createModule<MGauge::Unit>("gauge");
+
+    MSource::Z2::Par z2Par;
+    z2Par.tA = 0;
+    z2Par.tB = 0;
+    application.createModule<MSource::Z2>("z2", z2Par);
     //source
     MSource::Point::Par ptPar;
     ptPar.position = "0 0 0 0";
@@ -101,7 +177,7 @@ int main(int argc, char *argv[])
         // solvers
         MSolver::RBPrecCG::Par solverPar;
         solverPar.action       = "WilsonClover_" + flavour[i];
-        solverPar.residual     = 1.0e-8;
+        solverPar.residual     = 1.0e-14;
         solverPar.maxIteration = 10000;
         application.createModule<MSolver::RBPrecCG>("CG_" + flavour[i],
                                                     solverPar);
@@ -111,28 +187,36 @@ int main(int argc, char *argv[])
         quarkPar.solver = "CG_" + flavour[i];
         quarkPar.source = "pt";
         application.createModule<MFermion::GaugeProp>("Qpt_" + flavour[i], quarkPar);
+	quarkPar.source = "z2";
+        application.createModule<MFermion::GaugeProp>("QZ2_" + flavour[i], quarkPar);
 
     }
     for (unsigned int i = 0; i < flavour.size(); ++i)
     for (unsigned int j = i; j < flavour.size(); ++j)
     {
-        //std::cout << "FLAVOR SIZE" << flavour.size() << std::endl;
+     
         MContraction::Meson::Par mesPar;
         
-        mesPar.output  = "mesons/pt_" + flavour[i] + flavour[j];
-       
+        mesPar.output  = "mesons/pt_" + flavour[i] + flavour[j];  
         mesPar.q1      = "Qpt_" + flavour[i];
         mesPar.q2      = "Qpt_" + flavour[j];
-        
-       // mesPar.gammas  = "all";
-      //  mesPar.gammas = "(Gamma5 Gamma5)(GammaX GammaX)(GammaY GammaY)(GammaZ GammaZ)";
-        mesPar.gammas = "(Gamma5 Gamma5)(GammaX GammaX)";
+        mesPar.gammas  = "(Gamma5 Gamma5)(GammaX GammaX)(GammaY GammaY)(GammaZ GammaZ)(GammaXGamma5 Gamma5)(GammaYGamma5 Gamma5)(GammaZGamma5 Gamma5)";
         mesPar.sink    = "sink";
         application.createModule<MContraction::Meson>("meson_pt_"
                                                       + flavour[i] + flavour[j],
                                                       mesPar);
-     
-     
+
+	mesPar.output   = "mesons/Z2_" + flavour[i] + flavour[j];
+        mesPar.q1       = "QZ2_" + flavour[i];
+        mesPar.q2       = "QZ2_" + flavour[j];
+        mesPar.gammas   = "(Gamma5 Gamma5)(GammaX GammaX)(GammaY GammaY)(GammaZ GammaZ)(GammaTGamma5 Gamma5)";
+        mesPar.sink     = "sink";
+        application.createModule<MContraction::Meson>("meson_Z2_"
+                                                      + flavour[i] + flavour[j],
+                                                      mesPar);
+	
+
+
     }
 
     

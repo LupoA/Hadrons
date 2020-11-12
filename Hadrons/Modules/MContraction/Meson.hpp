@@ -47,7 +47,6 @@ BEGIN_HADRONS_NAMESPACE
  - gammas: gamma products to insert at sink & source, pairs of gamma matrices 
            (space-separated strings) in round brackets (i.e. (g_sink g_src)),
            in a sequence (e.g. "(Gamma5 Gamma5)(Gamma5 GammaT)").
-
            Special values: "all" - perform all possible contractions.
  - sink: module to compute the sink to use in contraction (string).
 */
@@ -57,51 +56,51 @@ BEGIN_HADRONS_NAMESPACE
  ******************************************************************************/
 BEGIN_MODULE_NAMESPACE(MContraction)
 
-typedef std::pair<Gamma::Algebra, Gamma::Algebra> GammaPair;
+  typedef std::pair<Gamma::Algebra, Gamma::Algebra> GammaPair;
 
 class MesonPar: Serializable
 {
 public:
-    GRID_SERIALIZABLE_CLASS_MEMBERS(MesonPar,
-                                    std::string, q1,
-                                    std::string, q2,
-                                    std::string, gammas,
-                                    std::string, sink,
-                                    std::string, output);
+  GRID_SERIALIZABLE_CLASS_MEMBERS(MesonPar,
+				  std::string, q1,
+				  std::string, q2,
+				  std::string, gammas,
+				  std::string, sink,
+				  std::string, output);
 };
 
 template <typename FImpl1, typename FImpl2>
 class TMeson: public Module<MesonPar>
 {
 public:
-    FERM_TYPE_ALIASES(FImpl1, 1);
-    FERM_TYPE_ALIASES(FImpl2, 2);
-    BASIC_TYPE_ALIASES(ScalarImplCR, Scalar);
-    SINK_TYPE_ALIASES(Scalar);
-    class Result: Serializable
-    {
-    public:
-        GRID_SERIALIZABLE_CLASS_MEMBERS(Result,
-                                        Gamma::Algebra, gamma_snk,
-                                        Gamma::Algebra, gamma_src,
-                                        std::vector<Complex>, corr);
-    };
+  FERM_TYPE_ALIASES(FImpl1, 1);
+  FERM_TYPE_ALIASES(FImpl2, 2);
+  BASIC_TYPE_ALIASES(ScalarImplCR, Scalar);
+  SINK_TYPE_ALIASES(Scalar);
+  class Result: Serializable
+  {
+  public:
+    GRID_SERIALIZABLE_CLASS_MEMBERS(Result,
+				    Gamma::Algebra, gamma_snk,
+				    Gamma::Algebra, gamma_src,
+				    std::vector<Complex>, corr);
+  };
 public:
-    // constructor
-    TMeson(const std::string name);
-    // destructor
-    virtual ~TMeson(void) {};
-    // parse arguments
-    virtual void parseGammaString(std::vector<GammaPair> &gammaList);
-    // dependencies/products
-    virtual std::vector<std::string> getInput(void);
-    virtual std::vector<std::string> getOutput(void);
-    virtual std::vector<std::string> getOutputFiles(void);
+  // constructor
+  TMeson(const std::string name);
+  // destructor
+  virtual ~TMeson(void) {};
+  // parse arguments
+  virtual void parseGammaString(std::vector<GammaPair> &gammaList);
+  // dependencies/products
+  virtual std::vector<std::string> getInput(void);
+  virtual std::vector<std::string> getOutput(void);
+  virtual std::vector<std::string> getOutputFiles(void);
 protected:
-    // execution
-    virtual void setup(void);
-    // execution
-    virtual void execute(void);
+  // execution
+  virtual void setup(void);
+  // execution
+  virtual void execute(void);
 };
 
 MODULE_REGISTER_TMP(Meson, ARG(TMeson<FIMPL, FIMPL>), MContraction);
@@ -112,31 +111,31 @@ MODULE_REGISTER_TMP(Meson, ARG(TMeson<FIMPL, FIMPL>), MContraction);
 // constructor /////////////////////////////////////////////////////////////////
 template <typename FImpl1, typename FImpl2>
 TMeson<FImpl1, FImpl2>::TMeson(const std::string name)
-: Module<MesonPar>(name)
+  : Module<MesonPar>(name)
 {}
 
 // parse arguments /////////////////////////////////////////////////////////////
 template <typename FImpl1, typename FImpl2>
 void TMeson<FImpl1, FImpl2>::parseGammaString(std::vector<GammaPair> &gammaList)
 {
-    gammaList.clear();
-    // Determine gamma matrices to insert at source/sink.
-    if (par().gammas.compare("all") == 0)
+  gammaList.clear();
+  // Determine gamma matrices to insert at source/sink.
+  if (par().gammas.compare("all") == 0)
     {
-        // Do all contractions.
-        for (unsigned int i = 1; i < Gamma::nGamma; i += 2)
+      // Do all contractions.
+      for (unsigned int i = 1; i < Gamma::nGamma; i += 2)
         {
-            for (unsigned int j = 1; j < Gamma::nGamma; j += 2)
+	  for (unsigned int j = 1; j < Gamma::nGamma; j += 2)
             {
-                gammaList.push_back(std::make_pair((Gamma::Algebra)i, 
-                                                   (Gamma::Algebra)j));
+	      gammaList.push_back(std::make_pair((Gamma::Algebra)i, 
+						 (Gamma::Algebra)j));
             }
         }
     }
-    else
+  else
     {
-        // Parse individual contractions from input string.
-        gammaList = strToVec<GammaPair>(par().gammas);
+      // Parse individual contractions from input string.
+      gammaList = strToVec<GammaPair>(par().gammas);
     } 
 }
 
@@ -144,159 +143,112 @@ void TMeson<FImpl1, FImpl2>::parseGammaString(std::vector<GammaPair> &gammaList)
 template <typename FImpl1, typename FImpl2>
 std::vector<std::string> TMeson<FImpl1, FImpl2>::getInput(void)
 {
-    std::vector<std::string> input = {par().q1, par().q2, par().sink};
+  std::vector<std::string> input = {par().q1, par().q2, par().sink};
     
-    return input;
+  return input;
 }
 
 template <typename FImpl1, typename FImpl2>
 std::vector<std::string> TMeson<FImpl1, FImpl2>::getOutput(void)
 {
-    std::vector<std::string> output = {};
+  std::vector<std::string> output = {};
     
-    return output;
+  return output;
 }
 
 template <typename FImpl1, typename FImpl2>
 std::vector<std::string> TMeson<FImpl1, FImpl2>::getOutputFiles(void)
 {
-    std::vector<std::string> output = {resultFilename(par().output)};
+  std::vector<std::string> output = {resultFilename(par().output)};
     
-    return output;
+  return output;
 }
 
 // execution ///////////////////////////////////////////////////////////////////
 template <typename FImpl1, typename FImpl2>
 void TMeson<FImpl1, FImpl2>::setup(void)
 {
-    envTmpLat(LatticeComplex, "c");
+  envTmpLat(LatticeComplex, "c");
 }
 
 // execution ///////////////////////////////////////////////////////////////////
 #define mesonConnected(q1, q2, gSnk, gSrc) \
-(g5*(gSnk))*(q1)*(adj(gSrc)*g5)*adj(q2)
+  (g5*(gSnk))*(q1)*(adj(gSrc)*g5)*adj(q2)
 
 template <typename FImpl1, typename FImpl2>
 void TMeson<FImpl1, FImpl2>::execute(void)
 {
-    std::ofstream filePP;
-    std::ofstream fileXX;
-    std::ofstream fileYY;
-    std::ofstream fileZZ;
-    LOG(Message) << "Computing meson contractions '" << getName() << "' using"
-                 << " quarks '" << par().q1 << "' and '" << par().q2 << "'"
-                 << std::endl;
+  LOG(Message) << "Computing meson contractions '" << getName() << "' using"
+	       << " quarks '" << par().q1 << "' and '" << par().q2 << "'"
+	       << std::endl;
     
-    std::vector<TComplex>  buf;
-    std::vector<Result>    result;
-    Gamma                  g5(Gamma::Algebra::Gamma5);
-    std::vector<GammaPair> gammaList;
-    int                    nt = env().getDim(Tp);
+  std::vector<TComplex>  buf;
+  std::vector<Result>    result;
+  Gamma                  g5(Gamma::Algebra::Gamma5);
+  std::vector<GammaPair> gammaList;
+  int                    nt = env().getDim(Tp);
     
-    parseGammaString(gammaList);
-    result.resize(gammaList.size());
-    for (unsigned int i = 0; i < result.size(); ++i)
+  parseGammaString(gammaList);
+  result.resize(gammaList.size());
+  for (unsigned int i = 0; i < result.size(); ++i)
     {
-        result[i].gamma_snk = gammaList[i].first;
-        result[i].gamma_src = gammaList[i].second;
-        result[i].corr.resize(nt);
+      result[i].gamma_snk = gammaList[i].first;
+      result[i].gamma_src = gammaList[i].second;
+      result[i].corr.resize(nt);
     }
-    if (envHasType(SlicedPropagator1, par().q1) and
-        envHasType(SlicedPropagator2, par().q2))
+  if (envHasType(SlicedPropagator1, par().q1) and
+      envHasType(SlicedPropagator2, par().q2))
     {
-        auto &q1 = envGet(SlicedPropagator1, par().q1);
-        auto &q2 = envGet(SlicedPropagator2, par().q2);
+      auto &q1 = envGet(SlicedPropagator1, par().q1);
+      auto &q2 = envGet(SlicedPropagator2, par().q2);
         
-        LOG(Message) << "(propagator already sinked)" << std::endl;
-        for (unsigned int i = 0; i < result.size(); ++i)
+      LOG(Message) << "(propagator already sinked)" << std::endl;
+      for (unsigned int i = 0; i < result.size(); ++i)
         {
-            Gamma gSnk(gammaList[i].first);
-            Gamma gSrc(gammaList[i].second);
+	  Gamma gSnk(gammaList[i].first);
+	  Gamma gSrc(gammaList[i].second);
             
-            for (unsigned int t = 0; t < nt; ++t)
+	  for (unsigned int t = 0; t < nt; ++t)
             {
-                result[i].corr[t] = TensorRemove(trace(mesonConnected(q1[t], q2[t], gSnk, gSrc)));
+	      result[i].corr[t] = TensorRemove(trace(mesonConnected(q1[t], q2[t], gSnk, gSrc)));
             }
         }
     }
-    else
+  else
     {
-        auto &q1 = envGet(PropagatorField1, par().q1);
-        auto &q2 = envGet(PropagatorField2, par().q2);
+      auto &q1 = envGet(PropagatorField1, par().q1);
+      auto &q2 = envGet(PropagatorField2, par().q2);
         
-        envGetTmp(LatticeComplex, c);
-        LOG(Message) << "(using sink '" << par().sink << "')" << std::endl;
-        fileXX.open ("XX.txt", std::ios_base::app);
-        fileYY.open ("YY.txt", std::ios_base::app);
-        fileZZ.open ("ZZ.txt", std::ios_base::app);
-        for (unsigned int i = 0; i < result.size(); ++i)
+      envGetTmp(LatticeComplex, c);
+      LOG(Message) << "(using sink '" << par().sink << "')" << std::endl;
+      for (unsigned int i = 0; i < result.size(); ++i)
         {
-            Gamma       gSnk(gammaList[i].first);
-            Gamma       gSrc(gammaList[i].second);
-            std::string ns;
+	  Gamma       gSnk(gammaList[i].first);
+	  Gamma       gSrc(gammaList[i].second);
+	  std::string ns;
                 
-            ns = vm().getModuleNamespace(env().getObjectModule(par().sink));
-            if (ns == "MSource")
+	  ns = vm().getModuleNamespace(env().getObjectModule(par().sink));
+	  if (ns == "MSource")
             {
-                PropagatorField1 &sink = envGet(PropagatorField1, par().sink);
+	      PropagatorField1 &sink = envGet(PropagatorField1, par().sink);
                 
-                c = trace(mesonConnected(q1, q2, gSnk, gSrc)*sink);
-                sliceSum(c, buf, Tp);
+	      c = trace(mesonConnected(q1, q2, gSnk, gSrc)*sink);
+	      sliceSum(c, buf, Tp);
             }
-            else if (ns == "MSink")
+	  else if (ns == "MSink")
             {
-                SinkFnScalar &sink = envGet(SinkFnScalar, par().sink);
+	      SinkFnScalar &sink = envGet(SinkFnScalar, par().sink);
                 
-                c   = trace(mesonConnected(q1, q2, gSnk, gSrc));
-                buf = sink(c);
+	      c   = trace(mesonConnected(q1, q2, gSnk, gSrc));
+	      buf = sink(c);
             }
-            filePP.open ("PseudoPseudo.txt", std::ios_base::app);
-            for (unsigned int t = 0; t < buf.size(); ++t)
+	  for (unsigned int t = 0; t < buf.size(); ++t)
             {
-                result[i].corr[t] = TensorRemove(buf[t]);
-                if ( i == 0 ) {
-                
-                                   filePP << result[i].corr[t].real();
-                                   if (t < buf.size() - 1 ) {
-                                       filePP << "//";
-                                   }
-                                   
-                                   //std::cout << "c_pp(" << t << ") = " << result[i].corr[t].real()  << std::endl;
-                               }
-                if ( i == 2 ) {
-                
-                                   fileYY << result[i].corr[t].real();
-                                   if (t < buf.size() - 1 ) {
-                                       fileYY << "//";
-                                   } else {
-                                           fileYY << std::endl;
-                                   }
-                                   //std::cout << " gammasnk " << result[i].gamma_snk << std::endl;
-                                   //std::cout << " gammasrc " << result[i].gamma_src << std::endl;
-                                   //std::cout << "c_yy(" << t << ") = " << result[i].corr[t].real()  << std::endl;
-                               }
-                
-                if ( i == 3 ) {
-                
-                                   fileZZ << result[i].corr[t].real();
-                                   if (t < buf.size() - 1 ) {
-                                       fileZZ << "//";
-                                   } else {
-                                           fileZZ << std::endl;
-                                   }
-                                   //std::cout << " gammasnk " << result[i].gamma_snk << std::endl;
-                                   //std::cout << " gammasrc " << result[i].gamma_src << std::endl;
-                                   //std::cout << "c_zz(" << t << ") = " << result[i].corr[t].real()  << std::endl;
-                               }
+	      result[i].corr[t] = TensorRemove(buf[t]);
             }
-            filePP << std::endl;
         }
-        filePP.close();
-        fileXX.close();
-        fileYY.close();
-        fileZZ.close();
     }
-    saveResult(par().output, "meson", result);
+  saveResult(par().output, "meson", result);
 }
 
 END_MODULE_NAMESPACE
