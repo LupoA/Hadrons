@@ -30,6 +30,13 @@ using namespace Grid;
 using namespace Hadrons;
 using namespace MGauge;
 
+template class Grid::Hadrons::MGauge::TFundtoHirep<TwoIndexAntiSymmetricRepresentation>;
+
+
+/*
+
+
+
 // constructor /////////////////////////////////////////////////////////////////
 template <class Rep>
 TFundtoHirep<Rep>::TFundtoHirep(const std::string name)
@@ -73,3 +80,5 @@ void TFundtoHirep<Rep>::execute(void)
     TargetRepresentation.update_representation(U);
     URep = TargetRepresentation.U;
 }
+
+*/

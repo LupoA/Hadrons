@@ -31,4 +31,4 @@ using namespace MSource;
 
 template class Grid::Hadrons::MSource::TPoint<FIMPL>;
 template class Grid::Hadrons::MSource::TPoint<ScalarImplCR>;
-
+template class Grid::Hadrons::MSource::TPoint<WilsonTwoIndexAntiSymmetricImplR>;

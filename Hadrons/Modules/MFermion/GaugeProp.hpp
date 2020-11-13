@@ -81,7 +81,7 @@ private:
 
 MODULE_REGISTER_TMP(GaugeProp, TGaugeProp<FIMPL>, MFermion);
 MODULE_REGISTER_TMP(ZGaugeProp, TGaugeProp<ZFIMPL>, MFermion);
-
+MODULE_REGISTER_TMP(GaugeProp2AS, TGaugeProp<WilsonTwoIndexAntiSymmetricImplR>, MFermion);
 /******************************************************************************
  *                      TGaugeProp implementation                             *
  ******************************************************************************/

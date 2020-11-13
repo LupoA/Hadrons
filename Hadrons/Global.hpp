@@ -130,6 +130,9 @@ typedef Solver<FImpl> Solver##suffix;
 typedef std::function<SlicedPropagator##suffix\
                       (const PropagatorField##suffix &)> SinkFn##suffix;
 
+#define REP_TYPE_ALIASES(Rep, suffix)\
+  typedef typename Rep::LatticeField LatticeField##suffix;
+
 // logger
 class HadronsLogger: public Logger
 {

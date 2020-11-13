@@ -31,4 +31,4 @@ using namespace MSink;
 
 template class Grid::Hadrons::MSink::TPoint<FIMPL>;
 template class Grid::Hadrons::MSink::TPoint<ScalarImplCR>;
-
+template class Grid::Hadrons::MSink::TPoint<WilsonTwoIndexAntiSymmetricImplR>;
